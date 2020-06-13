@@ -15,8 +15,6 @@ def main():
     User.get_user_data(BASE_URL,USER_INFO)
     #映画の評価情報取得
     Movie.get_movie_data(BASE_URL,MOVIE_INFO)
-    #前処理
-
     #評価予想
 
 
