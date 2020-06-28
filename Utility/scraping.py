@@ -38,8 +38,40 @@ class Scraping:
             csv = pd.Series([avg_score],columns)
             data=data.append(csv,columns)
             print("進行状況："+str(i+1)+"/"+str(len(urls)))
-        data=data.set_index('AvgScore')
+        #data=data.set_index('AvgScore')
         data.to_csv('test3.csv',encoding='utf_8_sig')
         print("***** 平均値取得完了 *****")
         return data
     
+    def get_user_data(self,USER_INFO):
+        print("***** ユーザー情報取得開始 *****")
+        #1.ユーザーURLの取得###################################
+        user_url = BASE_URL + 'users/' + USER_INFO 
+        #2.ユーザーURLにアクセス###################################
+        #ユーザーの情報取得
+        user_soup=Scraping.generate_bs_object(self,user_url)
+        if user_soup==None:
+            print("アクセスエラー")
+        else:
+            #タイトルとユーザースコア取得
+            titles=Scraping.get_class_info(self,user_soup,'c-content-card__title')
+            user_scores=Scraping.get_class_info(self,user_soup,'c-rating__score')
+            urls=Scraping.get_class_info(self,user_soup,'c-content__jacket')
+            #データフレーム作成
+            columns=['Title','UserScore']
+            data=pd.DataFrame(columns=columns)
+            title_num = len(titles)
+            print("ユーザーの作品登録数："+str(title_num))
+            for i in range(title_num):
+                #タイトル取得
+                title_all=titles[i].a.text
+                title_year=titles[i].span.text
+                title=title_all.replace(title_year,'').strip()
+                #ユーザースコア取得
+                user_score=user_scores[i].text
+                csv = pd.Series([title,user_score],columns)
+                data=data.append(csv,columns)
+            #data=data.set_index('Title')
+            data.to_csv('test.csv',encoding='utf_8_sig')
+            print("***** ユーザー情報取得完了 *****")
+        return data, urls

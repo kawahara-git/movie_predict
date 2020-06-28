@@ -76,16 +76,39 @@ class Movie:
     def get_user_movie_data(self,user_data,user_movie_urls,movie_users_urls):
         print("***** 映画記録者のユーザー視聴映画情報取得開始 *****")
         #ユーザー映画の平均値取得
+
         avg_scores = Scraping.get_avg_score(user_movie_urls)
+        # print(avg_scores)
+        
         #映画記録者のユーザー視聴映画データ作成
         #ユーザー映画情報取得
         columns=['Title']
         data=pd.DataFrame(columns=columns)
         data['Title'] = user_data['Title']
         #共通項で表埋め
-
-        #欠損値埋め
-        
+        #print(movie_users_urls)
+        for index,url in enumerate(movie_users_urls):
+            #タイトルとユーザースコア取得
+            movie_user_data = Scraping.get_user_data(url)[0]
+            #movie_user_title = movie_user_dataframe.index
+           
+            #集合型に変換
+            set_user = set(data['Title'])
+            set_movie_user = set(movie_user_data['Title'])
+            matched_list=list(set_user & set_movie_user)
+            matched_data=movie_user_data.query('Title in @matched_list')
+            column_name = 'User'+str(index+1)+'Score'
+            matched_data=matched_data.rename(columns={'UserScore':column_name})
+            matched_data_list=matched_data.reset_index().T.reset_index().T.values.tolist() 
+            data[column_name]=avg_scores['AvgScore']
+            #print(matched_data_list)
+            for j in range(1,len(matched_data_list)):
+                 if matched_data_list[j][2] != '-':
+                     data=data.set_index('Title')
+                     data.at[matched_data_list[j][1],column_name]=matched_data_list[j][2]
+                     data=data.reset_index()
+                 else :
+                     pass        
         data=data.set_index('Title')
         data.to_csv('test4.csv',encoding='utf_8_sig')
         print("***** 映画記録者のユーザー視聴映画情報取得完了 *****")
